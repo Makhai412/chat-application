@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="business">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-
+scale=1.0">
+<title>Chat</title>
+<script src="https://cdn.tailwindcss.com"></script><script src="/socket.io/socket.io.js"></script>
+<script >
+
+    document.addEventListener("DOMContentLoaded", function() {
+    const socket = io();
+
+    socket.on("message", function(data) {
+        const html = generateMessageHTML(data.username, data.timestamp,
+        data.message);
+        const element = document.createElement("li");
+        element.innerHTML = html;
+        document.getElementById("chat-messages").appendChild(element);
+
+    });
+
+    socket.on("historical_messages", function(messages) {
+        for (let message of messages) {
+            const html = generateMessageHTML(message.username,message.timestamp, message.message);
+            
+            const element = document.createElement("li");
+            element.innerHTML = html;
+            document.getElementById("chat-messages").appendChild(element);
+        }
+    });
+
+    document.getElementById("send-message").addEventListener("click",function() {
+
+        const message = document.getElementById("message").value;
+        let user;
+        if(!user){
+            user = prompt("Enter your username: ");
+        }
+        socket.emit("message", {
+            username: user,
+            message: message,
+            timestamp: new Date()
+        });
+        document.getElementById("message").value = "";
+    });
+
+    
+    function generateMessageHTML(username, timestamp, message) {
+        let formattedTimestamp;
+        if (new Date().toLocaleDateString() === new
+            Date(timestamp).toLocaleDateString()) {
+            // Same day, include only timeformattedTimestamp = new Date(timestamp).toLocaleTimeString();
+        }else {
+            // Not the same day, include date and time
+            formattedTimestamp = new Date(timestamp).toLocaleString();
+        }
+        const html = `
+            <div class="flex space-x-2 pl-2 pt-2">
+            <div class="flex-shrink-0">
+            <div class="h-10 w-10 rounded-full bg-indigo-400 flex items-
+            center justify-center font-bold text-white">
+            ${username.charAt(0).toUpperCase()}
+            </div>
+            </div>
+            <div class="flex flex-col">
+            <div class="flex items-baseline space-x-2">
+            <div class="font-bold">
+            ${username.charAt(0).toUpperCase() + username.slice(1)}
+            </div>
+            <div class="text-sm text-gray-400">
+            ${formattedTimestamp}
+            </div>
+            </div>
+            
+            <div class="text-sm text-gray-500">
+            ${message}
+            </div>
+            </div>
+            </div>
+            `
+        return html;
+
+    }
+    
+})
+
+
+</script>
+</head>
+<body>
+<div class="grid h-screen">
+<div class="flex max-h-screen flex-col">
+<div class="header text-md border-b border-gray-200 py-4 pl-4
+font-bold">Chat</div>
+<div class="chat-messages flex-1 overflow-y-scroll">
+<ul class="space-y-4" id="chat-messages">
+</ul>
+</div>
+<div class="input-container p-4">
+<div class="input-area flex h-28 w-full flex-col space-y-2
+rounded-2xl border-2 border-gray-200 p-3">
+<textarea id="message" class="w-full flex-1 outline-
+none"></textarea>
+<div class="buttons flex flex-row items-center space-x-2
+align-baseline">
+<div class="flex-1">
+</div>
+<div>
+<button id="send-message" class="float-right rounded-
+xl bg-indigo-500 p-2">
+<svg xmlns="http://www.w3.org/2000/svg"
+fill="white" viewBox="0 0 24 24" stroke-width="1.5"
+stroke="currentColor" class="h-5 w-5 text-indigo-600">
+<path stroke-linecap="round" stroke-
+linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77
+59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+</svg>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</body>
+</html>
